@@ -5,9 +5,12 @@ import sys
 import hashlib
 from Cryptodome.Cipher import AES
 
+from display import Display
+
 
 sys.path.append("../server")
 from api import API
+from exceptions import AuthException, AccessException
 
 
 class Session:
@@ -33,3 +36,18 @@ class Session:
         plaintext = cipher.decrypt_and_verify(jv["ciphertext"], jv["tag"])
         self.session_key = plaintext
         return plaintext
+
+    @staticmethod
+    def check_access(func):
+        def wrapper(*args):
+            # print("client: " + str(args))
+            try:
+                output = func(*args)
+                return output
+                # print("server: " + str(output))
+            except AuthException:
+                args[0].session.username = None
+                args[0].session.session_key = None
+                Display.session_expired()
+
+        return wrapper

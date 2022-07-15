@@ -7,6 +7,7 @@ from display import Display
 
 sys.path.append("../server")
 from api import API
+from exceptions import AlreadyExistsException
 
 
 class CommandHandler:
@@ -42,6 +43,7 @@ class CommandHandler:
         except Exception:
             Display.login_failed()
 
+    @Session.check_access
     def process_command(self, command_tokens):
         if len(command_tokens) == 0:
             return
@@ -85,7 +87,7 @@ class CommandHandler:
         for new_dir in args:
             try:
                 API.make_directory(self.current_dir, new_dir, self.session.session_key)
-            except:
+            except AlreadyExistsException:
                 print("{}: already exists.".format(new_dir))
 
     def edit_file(self, args):

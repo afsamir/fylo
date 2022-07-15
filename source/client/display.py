@@ -25,3 +25,7 @@ class Display:
     @staticmethod
     def login_failed():
         print(f"{Fore.RED}Login failed. Try again.{Fore.RESET}")
+
+    @staticmethod
+    def session_expired():
+        print(f"{Fore.RED}Session expired.{Fore.RESET}")

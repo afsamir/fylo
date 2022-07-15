@@ -3,8 +3,8 @@ import sqlite3
 from datetime import datetime
 from encryption import Encryption
 from datetime import datetime
-from dateutil import parser
 from database import Database
+from exceptions import AlreadyExistsException
 
 
 class Server:
@@ -31,15 +31,8 @@ class Server:
             user[2],
         )
 
-    def authenticate(self, token):
-        decoded_token = self.encryption.verify_jwt(token)
-        created_at = parser.parse(decoded_token["timestamp"])
-        if (datetime.now() - created_at).total_seconds() > 300:
-            raise Exception()
-        return decoded_token["id"]
-
     def make_directory(self, current_dir, new_dir, token):
-        user_id = self.authenticate(token)
+        user_id = self.encryption.authenticate(token)
         new_path = os.path.join(current_dir, new_dir)
         try:
             self.db_connection.execute(
@@ -48,10 +41,10 @@ class Server:
             )
             self.db_connection.commit()
         except:
-            raise Exception()
+            raise AlreadyExistsException()
 
     def list_directory(self, dir, token):
-        user_id = self.authenticate(token)
+        user_id = self.encryption.authenticate(token)
         path = os.path.join("/", dir)
         if path is "/":
             path = ""
@@ -62,7 +55,7 @@ class Server:
         return files
 
     def is_directory_valid(self, dir, sub_dir, token):
-        user_id = self.authenticate(token)
+        user_id = self.encryption.authenticate(token)
         path = os.path.join(dir, sub_dir)
         path = os.path.normpath(path)
         entity = self.db_connection.execute(

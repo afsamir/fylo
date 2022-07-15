@@ -3,9 +3,11 @@ import hashlib
 import json
 from random import choice
 import string
+from datetime import datetime
+from dateutil import parser
 from Cryptodome.Cipher import AES
-
 import jwt
+from exceptions import AuthException
 
 
 class Encryption:
@@ -28,6 +30,13 @@ class Encryption:
         ]
         result = json.dumps(dict(zip(json_k, json_v)))
         return result
+
+    def authenticate(self, token):
+        decoded_token = self.verify_jwt(token)
+        created_at = parser.parse(decoded_token["timestamp"])
+        if (datetime.now() - created_at).total_seconds() > decoded_token["expire"]:
+            raise AuthException()
+        return decoded_token["id"]
 
     def verify_jwt(self, token):
         decoded_token = jwt.decode(
